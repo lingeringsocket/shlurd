@@ -103,7 +103,7 @@ object SpcImplicationMapper
         ),
         SilPropertyState(SprPredefWord(PD_ANOTHER))
       ) => {
-        val ordinalSecond = sentencePrinter.sb.ordinalNumber(
+        val ordinalSecond = sentencePrinter.bundle.ordinalNumber(
           2, SilUtils.getGender(reference, tongue))
         annotator.determinedRef(
           annotator.stateSpecifiedRef(
@@ -290,8 +290,7 @@ class SpcImplicationMapper(
               SilPropertyState(SilWordLemma(qualifier))),
             _ : SilIndefiniteDeterminer
           ) => {
-            val sb = responder.sentencePrinter.sb
-            sb.ordinalValue(qualifier) match {
+            responder.sentencePrinter.bundle.ordinalValue(qualifier) match {
               case Success(ordinal) => {
                 if (variableCounters.getOrElse(noun, 0) != (ordinal - 1)) {
                   throw InvalidBeliefExcn(

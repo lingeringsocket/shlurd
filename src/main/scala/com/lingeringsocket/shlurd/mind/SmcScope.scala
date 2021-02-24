@@ -275,7 +275,7 @@ trait SmcScope[
       case Seq() => {
         getMind.getCosmos.fail(
           ShlurdExceptionCode.UnresolvedPronoun,
-          sentencePrinter.sb.respondUnresolvedPronoun(
+          sentencePrinter.responseBundle.respondUnresolvedPronoun(
             sentencePrinter.print(
               unelided, INFLECT_NOMINATIVE, SilConjoining.NONE)))
       }
@@ -291,7 +291,7 @@ trait SmcScope[
           // FIXME report ambiguous possibilities in error
           getMind.getCosmos.fail(
             ShlurdExceptionCode.AmbiguousPronoun,
-            sentencePrinter.sb.respondAmbiguousPronoun(
+            sentencePrinter.responseBundle.respondAmbiguousPronoun(
               sentencePrinter.print(
                 unelided, INFLECT_NOMINATIVE, SilConjoining.NONE)))
         }
@@ -370,7 +370,7 @@ class SmcMindScope[
       case None => {
         mind.getCosmos.fail(
           ShlurdExceptionCode.UnknownModifier,
-          sentencePrinter.sb.respondUnknownModifier(word))
+          sentencePrinter.responseBundle.respondUnknownModifier(word))
       }
     }
   }
@@ -507,7 +507,7 @@ class SmcPhraseScope[
                 ),
                 _ : SilIndefiniteDeterminer
               ) if (matchLemma(lemma)) => {
-                getSentencePrinter.sb.ordinalValue(qualifier) match {
+                getSentencePrinter.bundle.ordinalValue(qualifier) match {
                   case Success(ordinal) => {
                     Some(tupleN(prior, set, produceOrdinal(ordinal)))
                   }
@@ -541,7 +541,7 @@ class SmcPhraseScope[
                   case SprPredefWord(PD_FORMER) => Some(1)
                   case SprPredefWord(PD_LATTER | PD_OTHER) => Some(2)
                   case _ => {
-                    getSentencePrinter.sb.ordinalValue(qualifier) match {
+                    getSentencePrinter.bundle.ordinalValue(qualifier) match {
                       case Success(o) => Some(o)
                       case _ => None
                     }
@@ -555,7 +555,7 @@ class SmcPhraseScope[
             def failMisqualified = {
               getMind.getCosmos.fail(
                 ShlurdExceptionCode.MisqualifiedNoun,
-                getSentencePrinter.sb.respondMisqualifiedNoun(
+                getSentencePrinter.responseBundle.respondMisqualifiedNoun(
                   noun, qualifiers.toSeq))
             }
             if (misqualified) {

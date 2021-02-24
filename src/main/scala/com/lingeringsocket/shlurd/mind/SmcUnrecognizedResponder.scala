@@ -23,7 +23,7 @@ class SmcUnrecognizedResponder(
   tongueIn : SprTongue,
   sentencePrinter : SilSentencePrinter)
 {
-  private val sb = sentencePrinter.sb
+  private val sb = sentencePrinter.responseBundle
 
   private implicit val tongue = tongueIn
 

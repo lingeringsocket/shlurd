@@ -700,7 +700,8 @@ class PhlebShell(
   private val playerToInterpreter = SmcCommunicationContext(
     tongue,
     Some(playerEntity),
-    Some(interpreterEntity)
+    Some(interpreterEntity),
+    terminal.getTranslatorOpt.map(_.getPlayerTongue)
   )
 
   private val noumenalUpdater : PhlebResponder = new PhlebResponder(
@@ -903,7 +904,7 @@ class PhlebShell(
                 })
               }
               if (sentence.tam.isInterrogative &&
-                !output.equals(sentencePrinter.sb.respondDontKnow))
+                !output.equals(sentencePrinter.responseBundle.respondDontKnow))
               {
                 val entities =
                   phenomenalMind.getConversation.getUtterances.
@@ -1065,7 +1066,7 @@ class PhlebShell(
   {
     if (parseResult.sentence.tam.isImperative) {
       // FIXME support imperatives
-      sentencePrinter.sb.contradictAssumption("", false)
+      sentencePrinter.responseBundle.contradictAssumption("", false)
     } else {
       responder.process(parseResult).text
     }

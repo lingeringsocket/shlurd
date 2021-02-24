@@ -72,7 +72,7 @@ class SpcMind(cosmos : SpcCosmos)
     val beliefs = source.getLines().
       filterNot(SprParser.isIgnorableLine).mkString("\n")
     val parseResults = responder.newParser(beliefs).parseAll
-    val ok = responder.sentencePrinter.sb.respondCompliance
+    val ok = responder.sentencePrinter.responseBundle.respondCompliance
     parseResults.foreach(parseResult => {
       val annotator = SpcAnnotator(parseResult.annotator)
       val inputRewriter = new SmcInputRewriter(this, annotator)

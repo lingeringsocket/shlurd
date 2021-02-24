@@ -158,10 +158,12 @@ class SmcContextualScorer[
 case class SmcCommunicationContext[EntityType<:SmcEntity](
   tongue : SprTongue,
   speakerEntity : Option[EntityType] = None,
-  listenerEntity : Option[EntityType] = None
+  listenerEntity : Option[EntityType] = None,
+  responseTongue : Option[SprTongue] = None
 )
 {
-  def flip = SmcCommunicationContext(tongue, listenerEntity, speakerEntity)
+  def flip = SmcCommunicationContext(
+    tongue, listenerEntity, speakerEntity, responseTongue)
 }
 
 class SmcResponder[
@@ -198,9 +200,20 @@ class SmcResponder[
 
   private implicit val tongue = mind.getTongue
 
-  val sentencePrinter = tongue.newSentencePrinter(mind)
+  val sentencePrinter = createSentencePrinter
 
   val mindScope = new MindScopeType(mind, sentencePrinter)
+
+  private def createSentencePrinter =
+  {
+    val sp = tongue.newSentencePrinter(mind)
+    communicationContext.responseTongue match {
+      case Some(rt) => {
+        sp.withResponseTongue(rt)
+      }
+      case _ => sp
+    }
+  }
 
   protected def responderMatchers(
     resultCollector : ResultCollectorType
@@ -354,7 +367,7 @@ class SmcResponder[
         debug("UNKNOWN SENTENCE")
         wrapResponseText(
           ShlurdExceptionCode.FailedParse,
-          sentencePrinter.sb.respondCannotUnderstand)
+          sentencePrinter.responseBundle.respondCannotUnderstand)
       }
   }
 
@@ -375,7 +388,7 @@ class SmcResponder[
         val eventResponder = spawn(eventMind)
         val result = eventResponder.process(
           SprParseResult(sentence, resultCollector.annotator)).text
-        if (result != sentencePrinter.sb.respondCompliance) {
+        if (result != sentencePrinter.responseBundle.respondCompliance) {
           throw ShlurdException(
             ShlurdExceptionCode.CausalityViolation, result)
         }
@@ -457,7 +470,7 @@ class SmcResponder[
           normalizedResponse,
           tamResponse)
         Success(tupleN(responseSentence,
-          sentencePrinter.sb.respondToCounterfactual(
+          sentencePrinter.responseBundle.respondToCounterfactual(
             sentencePrinter.print(responseSentence))))
       }
       case Success(_) => {
@@ -510,7 +523,7 @@ class SmcResponder[
       result match {
         case Success(Trilean.Unknown) => {
           debug("ANSWER UNKNOWN")
-          wrapResponseText(sentencePrinter.sb.respondDontKnow)
+          wrapResponseText(sentencePrinter.responseBundle.respondDontKnow)
         }
         case Success(truth) => {
           debug(s"ANSWER : $truth")
@@ -591,7 +604,7 @@ class SmcResponder[
                     SilConjoining.NONE)
                 }
               }
-              sentencePrinter.sb.terminatedSentence(
+              sentencePrinter.responseBundle.terminatedSentence(
                 answer,
                 tamResponse, sentence.formality)
             }
@@ -600,7 +613,7 @@ class SmcResponder[
             }
           }
           (responseSentence,
-            sentencePrinter.sb.respondToQuery(adjustedResponse))
+            sentencePrinter.responseBundle.respondToQuery(adjustedResponse))
         }
         case Failure(e) => {
           wrapResponseText(e)
@@ -624,7 +637,7 @@ class SmcResponder[
           result match {
             case Success(Trilean.Unknown) => {
               debug("ANSWER UNKNOWN")
-              wrapResponseText(sentencePrinter.sb.respondDontKnow)
+              wrapResponseText(sentencePrinter.responseBundle.respondDontKnow)
             }
             case Success(truth) => {
               debug(s"ANSWER : $truth")
@@ -684,7 +697,7 @@ class SmcResponder[
                 }
               }
               (responseSentence,
-                sentencePrinter.sb.respondToAssumption(
+                sentencePrinter.responseBundle.respondToAssumption(
                   ASSUMED_TRUE, truthBoolean, printedSentence, false))
             }
             case Failure(e) => {
@@ -712,7 +725,8 @@ class SmcResponder[
           predicateTruth match {
             case Success(Trilean.Unknown) => {
               debug("TRUTH UNKNOWN")
-              wrapResponseText(sentencePrinter.sb.respondNoncommittal)
+              wrapResponseText(
+                sentencePrinter.responseBundle.respondNoncommittal)
             }
             case Success(truth) => {
               debug(s"KNOWN TRUTH : $truth")
@@ -743,12 +757,13 @@ class SmcResponder[
                   }
                 }
                 (responseSentence,
-                  sentencePrinter.sb.respondToAssumption(
+                  sentencePrinter.responseBundle.respondToAssumption(
                     ASSUMED_TRUE, true, printedSentence, true))
               } else {
                 // FIXME:  add details on inconsistency, and maybe try
                 // to update state?
-                wrapResponseText(sentencePrinter.sb.respondNoncommittal)
+                wrapResponseText(
+                  sentencePrinter.responseBundle.respondNoncommittal)
               }
             }
             case Failure(e) => {
@@ -789,7 +804,7 @@ class SmcResponder[
             case _ => {
               cosmos.fail(
                 ShlurdExceptionCode.FailedParse,
-                sentencePrinter.sb.respondCannotUnderstand)
+                sentencePrinter.responseBundle.respondCannotUnderstand)
             }
           }
           stateChangeAttempt match {
@@ -835,7 +850,7 @@ class SmcResponder[
       trace("CONJUNCTIVE SENTENCE")
       wrapResponseText(
         ShlurdExceptionCode.FailedParse,
-        sentencePrinter.sb.respondCannotUnderstand)
+        sentencePrinter.responseBundle.respondCannotUnderstand)
     }
     case SilAmbiguousSentence(alternatives, _) => {
       debug("AMBIGUOUS SENTENCE")
@@ -843,7 +858,7 @@ class SmcResponder[
       // that does not result in an error
       wrapResponseText(
         ShlurdExceptionCode.FailedParse,
-        sentencePrinter.sb.respondCannotUnderstand)
+        sentencePrinter.responseBundle.respondCannotUnderstand)
     }
   }
 

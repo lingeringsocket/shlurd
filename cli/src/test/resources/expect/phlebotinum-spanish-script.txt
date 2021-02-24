@@ -11,6 +11,10 @@ Ves una puerta grande al oriente.
 
 No se puede ir por ese camino.
 
+> hay un elefante?
+
+No sé.
+
 > l
 
 OK.

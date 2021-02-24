@@ -743,7 +743,7 @@ class SpcResponder(
         forkedCosmos, inputSentence, resultCollector, 0
       ) matchPartial {
         case Some(result) => {
-          if (result != sentencePrinter.sb.respondCompliance) {
+          if (result != sentencePrinter.responseBundle.respondCompliance) {
             return Some(wrapResponseText(result))
           }
           if (mind.hasNarrative) {
@@ -801,7 +801,8 @@ class SpcResponder(
           ) match {
             case SpcTriggerResult(Some(message), verbMatched) => {
               val strength = {
-                if (message == sentencePrinter.sb.respondCompliance) {
+                val ok = sentencePrinter.responseBundle.respondCompliance
+                if (message == ok) {
                   ASSERTION_PASS
                 } else {
                   ASSERTION_STRONG_FAILURE
@@ -849,7 +850,7 @@ class SpcResponder(
           if (assertion.sentence.tam.isPositive) {
             SpcAssertionResult(
               Some(requirement),
-              sentencePrinter.sb.respondCompliance,
+              sentencePrinter.responseBundle.respondCompliance,
               ASSERTION_PASS,
               binding.verbMatched)
           } else {
@@ -858,7 +859,7 @@ class SpcResponder(
                 requirement, SilTam.imperative, assertion.sentence.formality)
               SpcAssertionResult(
                 Some(requirement),
-                sentencePrinter.sb.respondUnable(action),
+                sentencePrinter.responseBundle.respondUnable(action),
                 ASSERTION_WEAK_FAILURE,
                 binding.verbMatched)
             } else {
@@ -1005,7 +1006,7 @@ class SpcResponder(
               return Some(wrapResponseMessage(err))
             }
             case Success(true) => {
-              return Some(sentencePrinter.sb.respondCompliance)
+              return Some(sentencePrinter.responseBundle.respondCompliance)
             }
           }
         })
@@ -1057,7 +1058,8 @@ class SpcResponder(
                       return Some(wrapResponseMessage(err))
                     }
                     case Success(true) => {
-                      return Some(sentencePrinter.sb.respondCompliance)
+                      return Some(
+                        sentencePrinter.responseBundle.respondCompliance)
                     }
                   }
                   spawn(imagine(forkedCosmos)).resolveReferences(
@@ -1086,12 +1088,13 @@ class SpcResponder(
           }
         }
         if (results.isEmpty) {
-          Some(sentencePrinter.sb.respondCompliance)
+          Some(sentencePrinter.responseBundle.respondCompliance)
         } else {
+          val ok = sentencePrinter.responseBundle.respondCompliance
           val nonCompliant =
-            results.filterNot(_ == sentencePrinter.sb.respondCompliance)
+            results.filterNot(_ == ok)
           if (nonCompliant.isEmpty) {
-            Some(sentencePrinter.sb.respondCompliance)
+            Some(sentencePrinter.responseBundle.respondCompliance)
           } else {
             nonCompliant.headOption
           }
@@ -1187,7 +1190,7 @@ class SpcResponder(
       : Option[String] =
   {
     var matched = false
-    val compliance = sentencePrinter.sb.respondCompliance
+    val compliance = sentencePrinter.responseBundle.respondCompliance
     val spawned = spawn(mind.spawn(forkedCosmos))
     val refMap = SmcResultCollector.snapshotRefMap(resultCollector.refMap)
     val beliefAccepter =
@@ -1312,7 +1315,7 @@ class SpcResponder(
           }
           debug("NEW BELIEF ACCEPTED")
         })
-        Some(sentencePrinter.sb.respondCompliance)
+        Some(sentencePrinter.responseBundle.respondCompliance)
       }
       case _ => None
     }
@@ -1404,10 +1407,10 @@ class SpcResponder(
 
     val message = {
       if (passes.nonEmpty) {
-        Some(sentencePrinter.sb.respondCompliance)
+        Some(sentencePrinter.responseBundle.respondCompliance)
       } else {
         if (flagErrors) {
-          Some(sentencePrinter.sb.respondIrrelevant)
+          Some(sentencePrinter.responseBundle.respondIrrelevant)
         } else {
           None
         }
@@ -1427,7 +1430,7 @@ class SpcResponder(
     if (seen.size > 100) {
       mind.getCosmos.fail(
         ShlurdExceptionCode.TriggerLimit,
-        sentencePrinter.sb.respondTriggerLimit)
+        sentencePrinter.responseBundle.respondTriggerLimit)
     } else if (seen.contains(boundPredicate)) {
       Success(true)
     } else {

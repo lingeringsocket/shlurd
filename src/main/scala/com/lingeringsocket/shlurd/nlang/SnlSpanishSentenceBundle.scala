@@ -328,4 +328,114 @@ class SnlSpanishSentenceBundle(
       case FORCE_EXCLAMATION => "¡"
     }
   }
+
+  override def respondDontKnow =
+  {
+    "No sé."
+  }
+
+  override def respondCannotUnderstand =
+  {
+    "¿Como?"
+  }
+
+  override def respondToCounterfactual(sentence : String) =
+  {
+    compose("Pero ya", sentence)
+  }
+
+  override def respondAmbiguous(noun : SilWord) =
+  {
+    compose(
+      "Sea más específico sobre a qué",
+      noun.toUnfoldedLemma,
+      "se refiere.")
+  }
+
+  override def respondUnknown(word : SilWord) =
+  {
+    compose("Lo siento, no sé nada de",
+      concat("'", word.toUnfoldedLemma, "'."))
+  }
+
+  override def respondUnknownModifier(word : SilWord) =
+  {
+    compose("Lo siento, no sé qué significa",
+      concat("'", word.toUnfoldedLemma, "'"),
+      "en este contexto.")
+  }
+
+  override def respondUnknownState(subject : String, state : SilWord) =
+  {
+    compose("Lo siento, no sé qué significa",
+      concat("'", state.toUnfoldedLemma, "'"),
+      "para", concat(subject, "."))
+  }
+
+  override def respondUnresolvedPronoun(pronoun : String) =
+  {
+    compose("Lo siento, cuando se dice",
+      concat("'", pronoun, "'"), "no sé a quién ni a qué se refiere.")
+  }
+
+  override def respondAmbiguousPronoun(pronoun : String) =
+  {
+    compose("Lo siento, cuando se dice",
+      concat("'", pronoun, "'"), "es ambiguo.")
+  }
+
+  override def respondMisqualifiedNoun(
+    noun : SilWord, qualifiers : Seq[String]) : String =
+  {
+    compose("Lo siento, cuando se dice",
+      concat("'",
+        compose((qualifiers :+ noun.toUnfoldedLemma).toSeq:_*),
+        "',"),
+      "no sé a qué se refiere.")
+  }
+
+  override def respondNonexistent(noun : SilWord) =
+  {
+    // FIXME gender
+    compose("Pero no conozco ningún", noun.toUnfoldedLemma, "así.")
+  }
+
+  override def respondNotUnderstood(
+    tam : SilTam, predicate : String, errorPhrase : String) =
+  {
+    val prefix = tam.mood match {
+      case MOOD_INDICATIVE => {
+        "Creo que se dice"
+      }
+      case MOOD_SUBJUNCTIVE => {
+        "Creo que se supone"
+      }
+      case MOOD_INTERROGATIVE => {
+        "Creo que se pregunta"
+      }
+      case MOOD_IMPERATIVE => {
+        "Creo que se ordena"
+      }
+    }
+    compose(
+      prefix,
+      concat(predicate, ","),
+      "pero no puedo entender la frase",
+      concat(DQUOTE, errorPhrase, DQUOTE))
+  }
+
+  override def respondUnable(action : String) =
+  {
+    compose("Uno no simplemente", concat(action, "."))
+  }
+
+  override def respondIrrelevant =
+  {
+    "No estoy seguro de cómo interpretar eso."
+  }
+
+  override def respondNoncommittal =
+  {
+    "¿Ah, de verdad?"
+  }
 }

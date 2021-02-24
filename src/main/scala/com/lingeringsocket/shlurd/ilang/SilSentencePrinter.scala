@@ -28,16 +28,25 @@ import SilSentencePrinter._
 
 class SilSentencePrinter(
   tongue : SilTongue,
-  genderAnalyzer : SilGenderAnalyzer)
+  genderAnalyzer : SilGenderAnalyzer,
+  responseTongue : Option[SilTongue] = None)
 {
   def getTongue = tongue
 
-  val sb = tongue.newSentenceBundle
+  val bundle = tongue.newSentenceBundle
+
+  val responseBundle =
+    responseTongue.map(_.newSentenceBundle).getOrElse(bundle)
+
+  def withResponseTongue(newResponseTongue : SilTongue) : SilSentencePrinter =
+  {
+    new SilSentencePrinter(tongue, genderAnalyzer, Some(newResponseTongue))
+  }
 
   def print(
     sentence : SilSentence, ellipsis : Boolean = false) : String =
   {
-    sb.terminatedSentence(
+    bundle.terminatedSentence(
       printUnterminated(sentence, ellipsis),
       sentence.tam, sentence.formality)
   }
@@ -67,7 +76,7 @@ class SilSentencePrinter(
           predicate, tam, answerInflection, Some(question))
       }
       case SilConjunctiveSentence(determiner, sentences, separator) => {
-        sb.conjoin(
+        bundle.conjoin(
           determiner, separator, INFLECT_NONE,
           sentences.map(s => printUnterminated(s, ellipsis)))
       }
@@ -79,7 +88,7 @@ class SilSentencePrinter(
         tamAntecedent, tamConsequent, biconditional, _
       ) => {
         assert(!ellipsis)
-        sb.conditional(
+        bundle.conditional(
           conjunction,
           printPredicateStatement(
             antecedent, tamAntecedent, ellipsis),
@@ -89,7 +98,7 @@ class SilSentencePrinter(
       }
       case SilUnparsedSentence(text) => text
       case _ : SilUnknownSentence => {
-        sb.unknownSentence
+        responseBundle.unknownSentence
       }
     }
   }
@@ -102,7 +111,7 @@ class SilSentencePrinter(
     reference match {
       case SilDeterminedReference(sub, determiner) => {
         val (person, gender, count) = getSubjectAttributes(sub)
-        sb.determinedNoun(
+        bundle.determinedNoun(
           determiner,
           print(sub, inflection, conjoining),
           person,
@@ -112,13 +121,13 @@ class SilSentencePrinter(
       }
       case SilCountedNounReference(noun, count) => {
         val gender = SilUtils.getGender(reference, genderAnalyzer)
-        sb.delemmatizeNoun(noun, gender, count, inflection, conjoining)
+        bundle.delemmatizeNoun(noun, gender, count, inflection, conjoining)
       }
       case pr : SilPronounReference => {
         printPronoun(pr, inflection, conjoining)
       }
       case SilConjunctiveReference(determiner, references, separator) => {
-        sb.conjoin(
+        bundle.conjoin(
           determiner, separator, inflection,
           references.zipWithIndex.map {
             case (r, i) => print(
@@ -132,10 +141,10 @@ class SilSentencePrinter(
           case INFLECT_GENITIVE => print(sub, INFLECT_NONE, SilConjoining.NONE)
           case _ => print(sub, inflection, SilConjoining.NONE)
         }
-        sb.parenthetical(inside, inflection, conjoining, bracket)
+        bundle.parenthetical(inside, inflection, conjoining, bracket)
       }
       case SilAppositionalReference(primary, secondary) => {
-        sb.appositionedNoun(
+        bundle.appositionedNoun(
           print(primary, inflection, SilConjoining.NONE),
           print(secondary, inflection, conjoining))
       }
@@ -145,18 +154,18 @@ class SilSentencePrinter(
             val specified = print(sub, inflection, SilConjoining.NONE)
             val specifier = printAdpositionalPhrase(
               adpositionalState, conjoining)
-            return sb.specifiedNoun(specifier, specified)
+            return bundle.specifiedNoun(specifier, specified)
           }
         }
         val qualifierString = state match {
-          case _ : SilUnknownState => sb.unknownState
+          case _ : SilUnknownState => responseBundle.unknownState
           case _ =>  {
-            sb.composeQualifiers(
+            bundle.composeQualifiers(
               SilUtils.extractQualifiers(state))
           }
         }
-        sb.separate(
-          sb.qualifiedNoun(
+        bundle.separate(
+          bundle.qualifiedNoun(
             qualifierString,
             print(sub, inflection, SilConjoining.NONE)),
           conjoining)
@@ -177,21 +186,21 @@ class SilSentencePrinter(
           }
         }
 
-        sb.genitivePhrase(
+        bundle.genitivePhrase(
           qualifierString,
           print(possessee, inflection, conjoining),
           isPronoun)
       }
       case SilQuotationReference(quotation, bracket) => {
-        sb.separate(
-          sb.applyInflection(
+        bundle.separate(
+          bundle.applyInflection(
             bracket.begin + quotation + bracket.end,
             COUNT_SINGULAR,
             inflection),
           conjoining)
       }
       case _ : SilUnknownReference => {
-        sb.unknownReference
+        responseBundle.unknownReference
       }
     }
   }
@@ -214,7 +223,7 @@ class SilSentencePrinter(
             tupleN(PERSON_THIRD, GENDER_NEUTER, COUNT_SINGULAR)
           }
         }
-        sb.delemmatizeState(
+        bundle.delemmatizeState(
           state,
           tam,
           person,
@@ -229,7 +238,7 @@ class SilSentencePrinter(
         printAdpositionalPhrase(adpositionalState, conjoining)
       }
       case SilConjunctiveState(determiner, states, separator) => {
-        sb.conjoin(
+        bundle.conjoin(
           determiner, separator, INFLECT_NONE,
           states.zipWithIndex.map {
             case (s, i) => print(
@@ -239,7 +248,7 @@ class SilSentencePrinter(
         )
       }
       case SilNullState() | _ : SilUnknownState => {
-        sb.unknownState
+        responseBundle.unknownState
       }
     }
   }
@@ -254,7 +263,7 @@ class SilSentencePrinter(
       val pronounKey = SilPronounKey(usage, ref.person)
       ref.pronounMap.get(pronounKey)
     }
-    sb.pronoun(
+    bundle.pronoun(
       ref.person, ref.gender, ref.count, ref.proximity, ref.politeness,
       word, inflection, conjoining)
   }
@@ -264,7 +273,7 @@ class SilSentencePrinter(
   {
     state match {
       case SilPropertyState(state) => {
-        sb.changeStateVerb(state, changeVerb)
+        bundle.changeStateVerb(state, changeVerb)
       }
       // FIXME:  conjoining, e.g. "close and lock the door"
       case _ => print(state, SilTam.imperative, None, SilConjoining.NONE)
@@ -286,7 +295,7 @@ class SilSentencePrinter(
           }
         }
         val existentialPronoun = getExistentialPronoun(state)
-        sb.statePredicateStatement(
+        bundle.statePredicateStatement(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, state, tam, verb,
@@ -324,7 +333,7 @@ class SilSentencePrinter(
             print(complement, complementInflection, SilConjoining.NONE)
           }
         }
-        sb.relationshipPredicate(
+        bundle.relationshipPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, SilNullState(), tam, verb,
@@ -338,7 +347,7 @@ class SilSentencePrinter(
       case SilActionPredicate(
         subject, verb, directObject, modifiers
       ) => {
-        sb.actionPredicate(
+        bundle.actionPredicate(
           print(subject, INFLECT_NOMINATIVE, SilConjoining.NONE),
           getVerbSeq(
             subject, verb, tamOriginal,
@@ -348,10 +357,10 @@ class SilSentencePrinter(
           modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
           tamOriginal,
-          objectPosition = sb.getObjectPosition(directObject))
+          objectPosition = bundle.getObjectPosition(directObject))
       }
       case _ : SilUnknownPredicate => {
-        sb.unknownPredicateStatement
+        responseBundle.unknownPredicateStatement
       }
     }
   }
@@ -371,7 +380,7 @@ class SilSentencePrinter(
               printChangeStateVerb(state, None))
           }
         }
-        sb.statePredicateCommand(
+        bundle.statePredicateCommand(
           subjectString,
           verbString,
           modifiers.map(printVerbModifier))
@@ -381,9 +390,9 @@ class SilSentencePrinter(
       ) => {
         val uninflectedVerb = verb.toUninflected
         val (person, gender, count) = getCommandeeAttributes(subject, formality)
-        sb.actionPredicate(
+        bundle.actionPredicate(
           "",
-          sb.delemmatizeVerb(
+          bundle.delemmatizeVerb(
             person, gender, count,
             tam, None, uninflectedVerb, INFLECT_NONE),
           Some(print(complement, INFLECT_NONE, SilConjoining.NONE)),
@@ -395,9 +404,9 @@ class SilSentencePrinter(
         subject, verb, directObject, modifiers
       ) => {
         val (person, gender, count) = getCommandeeAttributes(subject, formality)
-        sb.actionPredicate(
+        bundle.actionPredicate(
           "",
-          sb.delemmatizeVerb(
+          bundle.delemmatizeVerb(
             person, gender, count,
             tam, None, verb, INFLECT_NONE),
           directObject.map(
@@ -405,10 +414,10 @@ class SilSentencePrinter(
           modifiers.flatMap(printDative),
           modifiers.map(printVerbModifier),
           tam,
-          objectPosition = sb.getObjectPosition(directObject))
+          objectPosition = bundle.getObjectPosition(directObject))
       }
       case _ => {
-        sb.unknownPredicateCommand
+        responseBundle.unknownPredicateCommand
       }
     }
   }
@@ -453,13 +462,13 @@ class SilSentencePrinter(
     }
     val subjectString = subjectInflection match {
       case INFLECT_ACCUSATIVE | INFLECT_ADPOSITIONED => plainSubject
-      case _ => sb.query(plainSubject, question, subjectInflection)
+      case _ => bundle.query(plainSubject, question, subjectInflection)
     }
     predicate match {
       case SilStatePredicate(subject, verb, state, modifiers) => {
         val existentialPronoun = getExistentialPronoun(state)
         val stateString = print(state, tam, Some(subject), SilConjoining.NONE)
-        sb.statePredicateQuestion(
+        bundle.statePredicateQuestion(
           subjectString,
           getVerbSeq(
             subject, state, tam, verb,
@@ -477,7 +486,7 @@ class SilSentencePrinter(
           ref => printDirectObject(ref))
         val directObjectString = answerInflection match {
           case INFLECT_ACCUSATIVE => {
-            plainDirectObject.map(sb.query(_, question, answerInflection))
+            plainDirectObject.map(bundle.query(_, question, answerInflection))
           }
           case _ => plainDirectObject
         }
@@ -488,9 +497,9 @@ class SilSentencePrinter(
               case SilAdpositionalVerbModifier(adposition, objRef) => {
                 val plainObj = print(
                   objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE)
-                sb.adpositionedNoun(
-                  sb.adpositionString(adposition),
-                  sb.query(plainObj, question, answerInflection),
+                bundle.adpositionedNoun(
+                  bundle.adpositionString(adposition),
+                  bundle.query(plainObj, question, answerInflection),
                   SilConjoining.NONE)
               }
               case _ => throw new RuntimeException(
@@ -501,7 +510,7 @@ class SilSentencePrinter(
             modifiers.map(printVerbModifier)
           }
         }
-        sb.actionPredicate(
+        bundle.actionPredicate(
           subjectString,
           getVerbSeq(subject, verb, tam,
             predicate.getInflectedAttributes, answerInflection),
@@ -510,12 +519,12 @@ class SilSentencePrinter(
           modifierStrings,
           tam,
           answerInflection,
-          objectPosition = sb.getObjectPosition(directObject))
+          objectPosition = bundle.getObjectPosition(directObject))
       }
       case SilRelationshipPredicate(
         subject, verb, complement, modifiers
       ) => {
-        sb.relationshipPredicate(
+        bundle.relationshipPredicate(
           subjectString,
           getVerbSeq(
             subject, SilNullState(), tam, verb,
@@ -527,7 +536,7 @@ class SilSentencePrinter(
           modifiers.map(printVerbModifier))
       }
       case _ : SilUnknownPredicate => {
-        sb.unknownPredicateQuestion
+        responseBundle.unknownPredicateQuestion
       }
     }
   }
@@ -540,12 +549,12 @@ class SilSentencePrinter(
   {
     val uninflectedVerb = {
       if (existentialPronoun.nonEmpty && (tam.modality == MODAL_EMPHATIC)) {
-        sb.existsVerb
+        bundle.existsVerb
       } else {
         verb.toUninflected
       }
     }
-    sb.delemmatizeVerb(
+    bundle.delemmatizeVerb(
       person, gender, count, tam, existentialPronoun, uninflectedVerb,
       answerInflection)
   }
@@ -558,7 +567,7 @@ class SilSentencePrinter(
     answerInflection : SilInflection) : Seq[String] =
   {
     val (person, gender, count) = getSubjectAttributes(subject)
-    sb.delemmatizeVerb(
+    bundle.delemmatizeVerb(
       combinePersons(person, inflectedAttributes.person),
       tongue.combineGenders(Seq(gender, inflectedAttributes.gender)),
       combineCounts(count, inflectedAttributes.count),
@@ -668,16 +677,16 @@ class SilSentencePrinter(
   {
     modifier match {
       case SilBasicVerbModifier(word) => {
-        sb.composeQualifiers(Seq(word))
+        bundle.composeQualifiers(Seq(word))
       }
       case SilDanglingVerbModifier(SilAdposition(word)) => {
-        sb.composeQualifiers(Seq(word))
+        bundle.composeQualifiers(Seq(word))
       }
       case adpositionalPhrase : SilAdpositionalVerbModifier => {
         printAdpositionalPhrase(adpositionalPhrase, SilConjoining.NONE)
       }
       case _ : SilUnknownVerbModifier => {
-        sb.unknownVerbModifier
+        responseBundle.unknownVerbModifier
       }
     }
   }
@@ -709,8 +718,8 @@ class SilSentencePrinter(
         ""
       }
       case _ => {
-        sb.adpositionedNoun(
-          sb.adpositionString(phrase.adposition),
+        bundle.adpositionedNoun(
+          bundle.adpositionString(phrase.adposition),
           print(phrase.objRef, INFLECT_ADPOSITIONED, SilConjoining.NONE),
           conjoining)
       }
@@ -719,7 +728,7 @@ class SilSentencePrinter(
 
   private def printDirectObject(ref : SilReference) : String =
   {
-    sb.directObject(
+    bundle.directObject(
       print(ref, INFLECT_ACCUSATIVE, SilConjoining.NONE),
       genderAnalyzer.isPerson(ref, genderAnalyzer))
   }

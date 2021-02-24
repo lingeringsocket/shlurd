@@ -371,8 +371,8 @@ class SpcCreed(
       if (possessorForm == possesseeForm) {
         val possesseeRef = idealReference(possesseeForm)
         val gender = SilUtils.getGender(possesseeRef, mind)
-        val ordinalFirst = sentencePrinter.sb.ordinalNumber(1, gender)
-        val ordinalSecond = sentencePrinter.sb.ordinalNumber(2, gender)
+        val ordinalFirst = sentencePrinter.bundle.ordinalNumber(1, gender)
+        val ordinalSecond = sentencePrinter.bundle.ordinalNumber(2, gender)
         tupleN(
           possesseeRef,
           annotator.genitiveRef(

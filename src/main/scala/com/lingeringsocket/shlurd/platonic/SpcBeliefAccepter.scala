@@ -499,7 +499,7 @@ class SpcBeliefAccepter private(
       APPLY_ALL_ASSERTIONS,
       triggerDepth = 1,
       flagErrors = false)
-    def ok = responder.sentencePrinter.sb.respondCompliance
+    def ok = responder.sentencePrinter.responseBundle.respondCompliance
     result.message matchPartial {
       case Some(msg) if (msg != ok) => {
         throw new UnacceptableBeliefExcn(

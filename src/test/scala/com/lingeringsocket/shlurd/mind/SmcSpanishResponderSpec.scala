@@ -155,18 +155,17 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, el oso pardo no está dormido.")
       process("oso pardo está dormido?") must be equalTo(
         "No, oso pardo no está dormido.")
-      // FIXME translate exceptions too
       processExceptionExpected(
         "el oso rizado está dormido?",
-        "But I don't know about any such oso.",
+        "Pero no conozco ningún oso así.",
         ShlurdExceptionCode.NonExistent)
       processExceptionExpected(
         "el oso está dormido?",
-        "Please be more specific about which oso you mean.",
+        "Sea más específico sobre a qué oso se refiere.",
         ShlurdExceptionCode.NotUnique)
       processExceptionExpected(
         "orange the soccer field",
-        "Sorry, I cannot understand what you said.",
+        "¿Como?",
         ShlurdExceptionCode.FailedParse)
       process("algún oso está dormido?") must be equalTo(
         "Sí, el oso polar está dormido.")
@@ -185,11 +184,10 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, ningunas cabras están despiertas.")
       processExceptionExpected(
         "hay un aardvark",
-        "Sorry, I don't know about any 'aardvark'.",
+        "Lo siento, no sé nada de 'aardvark'.",
         ShlurdExceptionCode.UnknownForm)
-      // FIXME translate canned responses
       process("el perezoso está despierto?") must be equalTo(
-        "I don't know.")
+        "No sé.")
       process("el perezoso o el tigre está despierto?") must be equalTo(
         "Sí, el tigre está despierto.")
       process("el león o el oso polar está despierto?") must be equalTo(
@@ -197,9 +195,9 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("el oso pardo o el tigre está despierto?") must be equalTo(
         "Sí, ambos están despiertos.")
       process("el perezoso o el tigre está dormido?") must be equalTo(
-        "I don't know.")
+        "No sé.")
       process("el perezoso o el león está despierto?") must be equalTo(
-        "I don't know.")
+        "No sé.")
       process("el perezoso o el león está dormido?") must be equalTo(
         "Sí, el león está dormido.")
       process("el tigre y el oso pardo están despiertos?") must be equalTo(
@@ -210,7 +208,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, el oso pardo no está en ninguna jaula.")
       processExceptionExpected(
         "el tigre está en la jaula?",
-        "Please be more specific about which jaula you mean.",
+        "Sea más específico sobre a qué jaula se refiere.",
         ShlurdExceptionCode.NotUnique)
       process("el tigre está en la jaula grande?") must be equalTo(
         "Sí, el tigre está en la jaula grande.")
@@ -224,7 +222,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
         "No, no hay un tigre en la jaula pequeña.")
       processExceptionExpected(
         "{el tigre en la jaula pequeña} está despierto?",
-        "But I don't know about any such tigre.",
+        "Pero no conozco ningún tigre así.",
         ShlurdExceptionCode.NonExistent)
       process("la cabra en la granja está despierta?") must be equalTo(
         "No, la cabra en la granja no está despierta.")
@@ -243,31 +241,32 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       processExceptionExpected(
         "está en la jaula grande?",
-        "Sorry, when you say 'él' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'él' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "ella está en la jaula grande?",
-        "Sorry, when you say 'ella' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'ella' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "su tigre está en la jaula grande?",
-        "Sorry, when you say 'su' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'su' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "nosotros estamos en la jaula grande?",
-        "Sorry, when you say 'nosotros' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'nosotros' " +
+          "no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "ellos están en la jaula grande?",
-        "Sorry, when you say 'ellos' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'ellos' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       processExceptionExpected(
         "tu tigre está en la jaula grande?",
-        "But I don't know about any such tigre.",
+        "Pero no conozco ningún tigre así.",
         ShlurdExceptionCode.NonExistent)
       processExceptionExpected(
         "mi león está en la jaula grande?",
-        "But I don't know about any such león.",
+        "Pero no conozco ningún león así.",
         ShlurdExceptionCode.NonExistent)
       process("el oso pardo es un oso?") must be equalTo(
         "Sí, el oso pardo es un oso.")
@@ -411,7 +410,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       processExceptionExpected(
         "él está dormido",
-        "Sorry, when you say 'él' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'él' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       process("está el tigre dormido?") must be equalTo(
         "No, el tigre no está dormido.")
@@ -422,7 +421,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       processExceptionExpected(
         "ella está dormida",
-        "Sorry, when you say 'ella' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'ella' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       process("está la cabra siberiana dormida?") must be equalTo(
         "Sí, la cabra siberiana está dormida.")
@@ -444,7 +443,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("él está despierto?") must be equalTo(
         "Sí, está despierto.")
       process("Malcolm sabe la cantidad?") must be equalTo(
-        "I don't know.")
+        "No sé.")
       process("Malcolm se la informa?") must be equalTo(
         "No, no se la informa.")
 
@@ -465,7 +464,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       processExceptionExpected(
         "ellos están dormidos",
-        "Sorry, when you say 'ellos' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'ellos' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
       process("están el león y la cabra siberiana dormidos?") must be equalTo(
         "Sí, el león y la cabra siberiana están dormidos.")
@@ -476,12 +475,12 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
 
       processExceptionExpected(
         "ellas están dormidas",
-        "Sorry, when you say 'ellas' I don't know who or what you mean.",
+        "Lo siento, cuando se dice 'ellas' no sé a quién ni a qué se refiere.",
         ShlurdExceptionCode.UnresolvedPronoun)
 
       if (false) {
         process("Muldoon sabe la cantidad?") must be equalTo(
-          "I don't know.")
+          "No sé.")
         // FIXME: when "a ellos" is present, it should automatically
         // resolve the se ambiguity.  And even when it is absent,
         // we should still be able to resolve the ambiguity by
@@ -526,7 +525,7 @@ class SmcSpanishResponderSpec extends SmcResponderSpecification
       process("Malcolm les informa?") must be equalTo(
         "No, no les informa.")
       process("Malcolm sabe la cantidad?") must be equalTo(
-        "I don't know.")
+        "No sé.")
       process("Malcolm se la informa?") must be equalTo(
         "No, no se la informa.")
 

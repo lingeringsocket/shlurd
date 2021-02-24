@@ -196,7 +196,7 @@ class SmcPredicateEvaluator[
         debug("UNEXPECTED PREDICATE TYPE")
         cosmos.fail(
           ShlurdExceptionCode.FailedParse,
-          sentencePrinter.sb.respondCannotUnderstand)
+          sentencePrinter.responseBundle.respondCannotUnderstand)
       }
     }
     if (SmcPhraseQuerier.containsVariable(predicate)) {
@@ -230,7 +230,7 @@ class SmcPredicateEvaluator[
         debug(s"UNEXPECTED MODIFIER : $word")
         cosmos.fail(
           ShlurdExceptionCode.UnknownModifier,
-          sentencePrinter.sb.respondUnknownModifier(word))
+          sentencePrinter.responseBundle.respondUnknownModifier(word))
       }
       case m => Success(m)
     }
@@ -608,7 +608,7 @@ class SmcPredicateEvaluator[
               debug(s"UNEXPECTED STATE : $state")
               cosmos.fail(
                 ShlurdExceptionCode.FailedParse,
-                sentencePrinter.sb.respondCannotUnderstand)
+                sentencePrinter.responseBundle.respondCannotUnderstand)
             }
           }
         }
@@ -799,7 +799,7 @@ class SmcPredicateEvaluator[
         ) {
           Failure(ShlurdException(
             ShlurdExceptionCode.NonExistent,
-            sentencePrinter.sb.respondNonexistent(noun)))
+            sentencePrinter.responseBundle.respondNonexistent(noun)))
         } else {
           // FIXME special handling for COUNT_ZERO_PLURAL, COUNT_MASS
           count match {
@@ -822,7 +822,7 @@ class SmcPredicateEvaluator[
                 {
                   cosmos.fail(
                     ShlurdExceptionCode.NotUnique,
-                    sentencePrinter.sb.respondAmbiguous(noun))
+                    sentencePrinter.responseBundle.respondAmbiguous(noun))
                 } else {
                   evaluateDeterminer(
                     entities.map(
@@ -952,7 +952,7 @@ class SmcPredicateEvaluator[
         trace("ERROR", e)
         cosmos.fail(
           ShlurdExceptionCode.UnknownForm,
-          sentencePrinter.sb.respondUnknown(noun))
+          sentencePrinter.responseBundle.respondUnknown(noun))
       }
     }
   }
@@ -1257,7 +1257,7 @@ class SmcPredicateEvaluator[
         debug("UNKNOWN REFERENCE")
         cosmos.fail(
           ShlurdExceptionCode.FailedParse,
-          sentencePrinter.sb.respondCannotUnderstand)
+          sentencePrinter.responseBundle.respondCannotUnderstand)
       }
     }
   }
@@ -1333,7 +1333,7 @@ class SmcPredicateEvaluator[
         }
         cosmos.fail(
           ShlurdExceptionCode.UnknownState,
-          sentencePrinter.sb.respondUnknownState(
+          sentencePrinter.responseBundle.respondUnknownState(
             sentencePrinter.print(
               errorRef,
               INFLECT_NOMINATIVE,
@@ -1411,7 +1411,7 @@ class SmcPredicateEvaluator[
         debug("ERROR", e)
         cosmos.fail(
           ShlurdExceptionCode.UnknownForm,
-          sentencePrinter.sb.respondUnknown(
+          sentencePrinter.responseBundle.respondUnknown(
             SilWord(categoryLabel.toNounLemma)))
       }
       case _ => result
@@ -1469,7 +1469,7 @@ class SmcPredicateEvaluator[
           }
           case _ => cosmos.fail(
             ShlurdExceptionCode.FailedParse,
-            sentencePrinter.sb.respondCannotUnderstand)
+            sentencePrinter.responseBundle.respondCannotUnderstand)
         }
       }
     }
