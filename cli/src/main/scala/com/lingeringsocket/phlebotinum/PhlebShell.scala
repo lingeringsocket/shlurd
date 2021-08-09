@@ -42,7 +42,8 @@ object PhlebShell
 
   val OK = "OK."
 
-  private val actionRespond = SilWord.uninflected("respond").withSense("v:817348")
+  private val actionRespond =
+    SilWord.uninflected("respond").withSense("v:817348")
 
   private val serializer = new PhlebSerializer
 
