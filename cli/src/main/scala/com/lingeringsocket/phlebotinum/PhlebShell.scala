@@ -42,7 +42,7 @@ object PhlebShell
 
   val OK = "OK."
 
-  private val actionRespond = SilWord.uninflected("respond")
+  private val actionRespond = SilWord.uninflected("respond").withSense("v:817348")
 
   private val serializer = new PhlebSerializer
 
@@ -617,8 +617,10 @@ class PhlebShell(
                         val annotator = SpcAnnotator()
                         defer(DeferredReport(
                           SprUtils.capitalize(
-                            noResponse(conversationalReference(
-                              annotator, targetEntity)))))
+                            translateResponseSentence(
+                              noResponse(conversationalReference(
+                                annotator, targetEntity)),
+                              true))))
                       }
                     }
                   }
@@ -766,6 +768,118 @@ class PhlebShell(
     PhlebShell.accessEntityMind(snapshot, entity)
   }
 
+  private def parserForTranslation(
+    expanded : String,
+    translatorOpt : Option[PhlebTranslator],
+    responder : PhlebResponder) : SprParser =
+  {
+    translatorOpt.map(translator => {
+      // FIXME need to hybridize in responder for
+      // genderAnalyzer and maybe word labeler
+      val playerTongue = translator.getPlayerTongue
+      val playerScorer = new SpcContextualScorer(
+        playerTongue, responder)
+      val context = SprContext(
+        new SprWordnetLabeler(playerTongue),
+        scorer = new SnlTranslatingScorer(
+          playerScorer,
+          playerTongue,
+          translator.getInterpreterTongue,
+          translator.alignment,
+          translator.playerToInterpreter
+        ),
+        annotator = responder.newAnnotator,
+        genderAnalyzer = playerTongue)
+      SprParser(expanded, context)
+    }).getOrElse {
+      responder.newParser(expanded)
+    }
+  }
+
+  private def translateInput(
+    parseResult : SprParseResult,
+    translatorOpt : Option[PhlebTranslator],
+    responder : PhlebResponder,
+    dumpParse : Boolean) : SprParseResult =
+  {
+    translatorOpt.map(translator => {
+      val interpreterScorer = new SpcContextualScorer(
+        translator.getInterpreterTongue, responder)
+      val inputTranslator = translator.newInputTranslator(
+        Some(interpreterScorer))
+      val analyzer =
+        new SprWordnetSenseAnalyzer(
+          translator.getPlayerTongue,
+          parseResult.annotator)
+      val analyzed = analyzer.analyze(parseResult.sentence)
+      val translatedInput =
+        inputTranslator.translate(analyzed)
+      if (dumpParse) {
+        terminal.emitTrace(s"TRANSLATED $translatedInput")
+      }
+      parseResult.copy(
+        sentence = translatedInput,
+        annotator = inputTranslator.annotator
+      )
+    }).getOrElse {
+      parseResult
+    }
+  }
+
+  private def translateResponseSentence(
+    sentence : SilSentence,
+    terminated : Boolean) : String =
+  {
+    val text = {
+      if (terminated) {
+        sentencePrinter.print(sentence)
+      } else {
+        sentencePrinter.printUnterminated(sentence)
+      }
+    }
+    translateResponse(
+      text,
+      SmcResponse(
+        tongue,
+        text,
+        phenomenalResponder.newAnnotator,
+        sentence
+      ),
+      terminal.getTranslatorOpt,
+      terminated)
+  }
+
+  private def translateResponse(
+    output : String,
+    response : SmcResponse,
+    translatorOpt : Option[PhlebTranslator],
+    terminated : Boolean = true) : String =
+  {
+    terminal.getTranslatorOpt.map(translator => {
+      val translated = translator.newResponseTranslator.translate(
+        response.sentence)
+      // FIXME genderAnalyzer should hybridize in appropriate mind
+      val playerTongue = translator.getPlayerTongue
+      val playerSentencePrinter = playerTongue.newSentencePrinter(
+        playerTongue)
+      val printed = translated match {
+        case _ : SilUnparsedSentence => {
+          playerSentencePrinter.printUnterminated(translated)
+        }
+        case _ => {
+          if (terminated) {
+            playerSentencePrinter.print(translated)
+          } else {
+            playerSentencePrinter.printUnterminated(translated)
+          }
+        }
+      }
+      val capitalized = SprUtils.capitalize(printed)
+      terminal.emitTrace(s"TRANSLATED $capitalized")
+      capitalized
+    }).getOrElse(output)
+  }
+
   private def processDeferred() : Unit =
   {
     var first = true
@@ -802,7 +916,7 @@ class PhlebShell(
             SmcResponseParams(), executor, communicationContext)
           val parseResults = responder.newParser(input).parseAll
           parseResults.foreach(parseResult => {
-            val output = processUtterance(responder, parseResult)
+            val output = processUtterance(responder, parseResult).text
             logger.trace(s"RESULT $output")
             terminal.emitNarrative("")
             // FIXME allow side effects of conversation
@@ -826,60 +940,15 @@ class PhlebShell(
               None
             }
           }
-          val parser = translatorOpt match {
-            case Some(translator) => {
-              // FIXME need to hybridize in phenomenalResponder for
-              // genderAnalyzer and maybe word labeler
-              val playerTongue = translator.getPlayerTongue
-              val playerScorer = new SpcContextualScorer(
-                playerTongue, phenomenalResponder)
-              val context = SprContext(
-                new SprWordnetLabeler(playerTongue),
-                scorer = new SnlTranslatingScorer(
-                  playerScorer,
-                  playerTongue,
-                  translator.getInterpreterTongue,
-                  translator.alignment,
-                  translator.playerToInterpreter
-                ),
-                annotator = phenomenalResponder.newAnnotator,
-                genderAnalyzer = playerTongue)
-              SprParser(expanded, context)
-            }
-            case _ => {
-              phenomenalResponder.newParser(expanded)
-            }
-          }
+          val parser = parserForTranslation(
+            expanded, translatorOpt, phenomenalResponder)
           val parseResults = parser.parseAll
           parseResults.foreach(parseResult => {
             if (dumpParse) {
               terminal.emitTrace(s"PARSED ${parseResult.sentence}")
             }
-            val translated = translatorOpt match {
-              case Some(translator) => {
-                val interpreterScorer = new SpcContextualScorer(
-                  translator.getInterpreterTongue, phenomenalResponder)
-                val inputTranslator = translator.newInputTranslator(
-                  Some(interpreterScorer))
-                val analyzer =
-                  new SprWordnetSenseAnalyzer(
-                    translator.getPlayerTongue,
-                    parseResult.annotator)
-                val analyzed = analyzer.analyze(parseResult.sentence)
-                val translatedCommand =
-                  inputTranslator.translate(analyzed)
-                if (dumpParse) {
-                  terminal.emitTrace(s"TRANSLATED $translatedCommand")
-                }
-                parseResult.copy(
-                  sentence = translatedCommand,
-                  annotator = inputTranslator.annotator
-                )
-              }
-              case _ => {
-                parseResult
-              }
-            }
+            val translated = translateInput(
+              parseResult, translatorOpt, phenomenalResponder, dumpParse)
             val response = phenomenalResponder.process(translated)
             var output = response.text
             logger.trace(s"RESULT $output")
@@ -918,24 +987,8 @@ class PhlebShell(
               }
             }
             if (output.nonEmpty) {
-              terminal.getTranslatorOpt.foreach(translator => {
-                val translated = translator.newResponseTranslator.translate(
-                  response.sentence)
-                // FIXME genderAnalyzer should hybridize in phenomenalMind
-                val playerTongue = translator.getPlayerTongue
-                val playerSentencePrinter = playerTongue.newSentencePrinter(
-                  playerTongue)
-                val printed = translated match {
-                  case _ : SilUnparsedSentence => {
-                    playerSentencePrinter.printUnterminated(translated)
-                  }
-                  case _ => {
-                    playerSentencePrinter.print(translated)
-                  }
-                }
-                output = SprUtils.capitalize(printed)
-                terminal.emitTrace(s"TRANSLATED $output")
-              })
+              output = translateResponse(
+                output, response, terminal.getTranslatorOpt)
               terminal.emitNarrative(output)
             }
             if (assumption.nonEmpty) {
@@ -973,22 +1026,33 @@ class PhlebShell(
                   entityMind,
                   beliefParams.copy(acceptance = IGNORE_BELIEFS),
                   SmcResponseParams(), executor, communicationContext)
-                // FIXME use parseAll instead
-                val parseResult = entityResponder.newParser(quotation).
-                  parseOne
+                // FIXME use parseAll instead, and deal with fact
+                // that entity language and interpreter language
+                // may be different
+                val translatorOpt = terminal.getTranslatorOpt
+                val parser = parserForTranslation(
+                  quotation,
+                  translatorOpt,
+                  entityResponder)
+                val parseResult = parser.parseOne
+                val dumpParse = (terminal.isDebugging || logger.isTraceEnabled)
+                val translatedInput = translateInput(
+                  parseResult, translatorOpt, entityResponder, dumpParse)
                 val response = processUtterance(
-                  entityResponder, parseResult)
+                  entityResponder, translatedInput)
+                val translatedResponse = translateResponse(
+                  response.text, response, translatorOpt)
                 val responseSentence = SilPredicateSentence(
                   SilActionPredicate(
                     listenerReference,
                     actionRespond,
-                    Some(annotator.quotationRef(response))
+                    Some(annotator.quotationRef(translatedResponse))
                   )
                 )
-                sentencePrinter.printUnterminated(responseSentence)
+                translateResponseSentence(responseSentence, false)
               }
               case _ => {
-                noResponse(listenerReference)
+                translateResponseSentence(noResponse(listenerReference), true)
               }
             }
             terminal.emitNarrative("")
@@ -1049,26 +1113,30 @@ class PhlebShell(
       "Only crazy people talk to themselves."))
   }
 
-  private def noResponse(listenerReference : SilReference) : String =
+  private def noResponse(listenerReference : SilReference) : SilSentence =
   {
-    val responseSentence = SilPredicateSentence(
+    SilPredicateSentence(
       SilActionPredicate(
         listenerReference,
         actionRespond
       ),
       SilTam.indicative.negative
     )
-    sentencePrinter.print(responseSentence)
   }
 
   private def processUtterance(
-    responder : PhlebResponder, parseResult : SprParseResult) : String =
+    responder : PhlebResponder, parseResult : SprParseResult) : SmcResponse =
   {
     if (parseResult.sentence.tam.isImperative) {
       // FIXME support imperatives
-      sentencePrinter.responseBundle.contradictAssumption("", false)
+      val text = sentencePrinter.responseBundle.contradictAssumption("", false)
+      SmcResponse(
+        tongue,
+        text,
+        responder.newAnnotator,
+        SilUnparsedSentence(text))
     } else {
-      responder.process(parseResult).text
+      responder.process(parseResult)
     }
   }
 

@@ -60,6 +60,7 @@ class SnlSpanishSentencePrinterSpec
       // contractions
       expectStatement("ella besa al tigre")
       expectStatement("ella viene del norte")
+      expectCommand("diga \"yo\" al ladrón")
 
       // object pronouns
       expectStatement("ella me besa")

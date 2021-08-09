@@ -1210,20 +1210,30 @@ class SnlSpanishTongue(wordnet : SprWordnet)
     annotator : SilAnnotator
   ) = SilPhraseReplacementMatcher(
     "normalizeContractions", {
-      case SilAdpositionalVerbModifier(
-        SilAdposition(word @ SilWordLemma(LEMMA_AL | LEMMA_DEL)),
-        ref
+      case phrase : SilAdpositionalPhrase if (
+        Seq(LEMMA_AL, LEMMA_DEL).contains(phrase.adposition.word.toLemma)
       ) => {
-        val newAdposition = word.toLemma match {
+        val newAdposition = phrase.adposition.word.toLemma match {
           case LEMMA_AL => SprPredefAdposition(PD_TO)
           case LEMMA_DEL => SprPredefAdposition(PD_OF)
         }
-        SilAdpositionalVerbModifier(
-          newAdposition,
-          annotator.determinedRef(
-            ref,
-            DETERMINER_DEFINITE)
-        )
+        val newRef = annotator.determinedRef(
+          phrase.objRef,
+          DETERMINER_DEFINITE)
+        phrase match {
+          case _ : SilAdpositionalVerbModifier => {
+            SilAdpositionalVerbModifier(
+              newAdposition,
+              newRef
+            )
+          }
+          case _ => {
+            SilAdpositionalState(
+              newAdposition,
+              newRef
+            )
+          }
+        }
       }
     }
   )
