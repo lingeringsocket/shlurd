@@ -158,6 +158,11 @@ class PhlebMind(
     }
     def recurse(p : SilPredicate) : SilReference = {
       p matchPartial {
+        case SilActionPredicate(
+          _, SilWordLemma("recite"), Some(SilQuotationReference(q, _)), _
+        ) => {
+          return annotator.quotationRef(q, BRACKET_NONE)
+        }
         case ap @ SilActionPredicate(
           _, SilWordLemma("recite"), Some(qr), _
         ) => {
@@ -173,11 +178,6 @@ class PhlebMind(
               }
             }
           }
-        }
-        case SilActionPredicate(
-          _, SilWordLemma("recite"), Some(SilQuotationReference(q, _)), _
-        ) => {
-          return annotator.quotationRef(q, BRACKET_NONE)
         }
       }
       // FIXME choose best match instead of last
