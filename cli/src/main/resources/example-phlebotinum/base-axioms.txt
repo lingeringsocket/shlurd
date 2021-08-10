@@ -12,6 +12,9 @@ A cupboard is a kind of visible-fixture.
 
 An oracle is a kind of non-player-character.
 
+// FIXME should be able to use a game-spiel instead
+An axe-label is a kind of spiel-renderer.
+
 "Ze" is a nominative pronoun.
 "Zir" must be an objective pronoun or a possessive pronoun.
 "Zirself" is a reflexive pronoun.

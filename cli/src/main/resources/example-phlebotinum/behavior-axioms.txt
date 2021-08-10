@@ -16,6 +16,7 @@ When a game-character throws a game-object
 Whenever a thief begins a game-turn,
  the thief has no visible-items;
  also the thief perceives the thief;
+ also the thief perceives all axe-labels;
  also the thief surveys the thief's container.
 
 Whenever a thief observes a game-character,

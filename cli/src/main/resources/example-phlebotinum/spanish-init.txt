@@ -42,3 +42,7 @@ in Generic-Spanish.
 The thief-death-description yields
 "La sangre salpica por todas partes."
 in Generic-Spanish.
+
+When a thief initializes,
+ and the player-character's expected-language is Generic-Spanish,
+ subsequently the axe-label's predefined-text is "la big chalupa".

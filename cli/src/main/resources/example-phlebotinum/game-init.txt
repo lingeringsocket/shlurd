@@ -56,6 +56,9 @@ The thief believes "/example-phlebotinum/thief-mind-init.txt".
 There is a thief-death-description.
 The thief-death-description defaults to "Blood splatters everywhere.".
 
+There is an axe-label.
+The axe-label's predefined-text is "the battleaxe".
+
 The player-character is perceptive.
 The player-character believes "/example-phlebotinum/player-mind-init.txt".
 

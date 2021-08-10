@@ -157,17 +157,35 @@ class PhlebMind(
       }
     }
     def recurse(p : SilPredicate) : SilReference = {
+      p matchPartial {
+        case ap @ SilActionPredicate(
+          _, SilWordLemma("recite"), Some(qr), _
+        ) => {
+          val resultCollector = SpcResultCollector(annotator, refMap)
+          responder.resolveReferences(p, resultCollector)
+          refMap.get(qr) matchPartial {
+            // FIXME be more picky about entity type
+            case Some(entities) if (entities.size == 1) => {
+              entities.head matchPartial {
+                case SpcTransientEntity(_, q, _) => {
+                  return annotator.quotationRef(q, BRACKET_NONE)
+                }
+              }
+            }
+          }
+        }
+        case SilActionPredicate(
+          _, SilWordLemma("recite"), Some(SilQuotationReference(q, _)), _
+        ) => {
+          return annotator.quotationRef(q, BRACKET_NONE)
+        }
+      }
       // FIXME choose best match instead of last
       replacements(p).lastOption match {
         case Some(SilActionPredicate(
           _, SilWordLemma("compose"), Some(obj), _
         )) => {
           obj
-        }
-        case Some(SilActionPredicate(
-          _, SilWordLemma("recite"), Some(SilQuotationReference(q, _)), _
-        )) => {
-          annotator.quotationRef(q, BRACKET_NONE)
         }
         case Some(ap : SilActionPredicate) => {
           recurse(ap)

@@ -3,4 +3,4 @@ Believe "/example-phlebotinum/base-axioms.txt".
 I am suave.
 
 When a thief references an axe,
- the thief recites "the battleaxe".
+ the thief recites all axe-label's predefined-text.

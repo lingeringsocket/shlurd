@@ -73,12 +73,11 @@ OK.
 
 Llevas el hacha.
 
-// FIXME need to be able to replace "the battleaxe" with Spanish
 > diga "qué llevo?" al ladrón
 
 OK.
 
-Responde, "Llevas the battleaxe."
+Responde, "Llevas la big chalupa."
 
 > tira el hacha hacia el ladrón
 
