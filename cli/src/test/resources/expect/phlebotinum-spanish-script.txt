@@ -79,6 +79,29 @@ OK.
 
 Responde, "Llevas la big chalupa."
 
+> habla al ladrón
+
+OK.
+
+// FIXME should be in Spanish, together with other messages below
+(You are now in conversation.  Say TTYL to stop.)
+
+> hola, vato
+
+"Sorry, I cannot understand what you said."
+
+> qué llevo?
+
+"Llevas la big chalupa."
+
+> quién eres
+
+"Soy el ladrón."
+
+> TTYL
+
+(You are no longer in conversation.)
+
 > tira el hacha hacia el ladrón
 
 OK.

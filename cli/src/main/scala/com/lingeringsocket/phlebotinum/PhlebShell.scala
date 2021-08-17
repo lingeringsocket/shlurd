@@ -915,14 +915,23 @@ class PhlebShell(
             targetMind,
             beliefParams.copy(acceptance = IGNORE_BELIEFS),
             SmcResponseParams(), executor, communicationContext)
-          val parseResults = responder.newParser(input).parseAll
-          parseResults.foreach(parseResult => {
-            val output = processUtterance(responder, parseResult).text
-            logger.trace(s"RESULT $output")
+          val translatorOpt = terminal.getTranslatorOpt
+          val parser = parserForTranslation(
+            input,
+            translatorOpt,
+            responder)
+          parser.parseAll.foreach(parseResult => {
+            val dumpParse = (terminal.isDebugging || logger.isTraceEnabled)
+            val translatedInput = translateInput(
+              parseResult, translatorOpt, responder, dumpParse)
+            val output = processUtterance(responder, translatedInput)
+            logger.trace(s"RESULT ${output.text}")
             terminal.emitNarrative("")
             // FIXME allow side effects of conversation
             assert(deferredQueue.isEmpty)
-            terminal.emitNarrative(DQUOTE + output + DQUOTE)
+            val translatedOutput = translateResponse(
+              output.text, output, translatorOpt, true)
+            terminal.emitNarrative(DQUOTE + translatedOutput + DQUOTE)
           })
         }
         case DeferredCommand(input, isPlayerInput) => {
