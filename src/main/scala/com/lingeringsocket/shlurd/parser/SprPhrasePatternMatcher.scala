@@ -34,6 +34,8 @@ object SprPhrasePatternMatcher
 
   val CYCLE_INFINITY = 100000
 
+  val VOID = "VOID"
+
   val allowableLabels = computeAllowableLabels
 
   def foldLabel(label : String) : String =
@@ -61,7 +63,40 @@ object SprPhrasePatternMatcher
     SprPennTreebankLabels.getAll.map(foldLabel) ++
       Set(ZERO_OR_ONE, ZERO_OR_MORE, ONE_OR_MORE)
   }
+
+  private[parser] case class SymbolNote(
+    inits : mutable.Set[String],
+    finals : mutable.Set[String],
+    leftContext : mutable.Set[String],
+    rightContext : mutable.Set[String]
+  )
+  {
+    def weight = inits.size + finals.size + leftContext.size + rightContext.size
+  }
+
+  private[parser] case object SymbolNote
+  {
+    def apply(label : String) =
+    {
+      val note = new SymbolNote(
+        new mutable.LinkedHashSet[String],
+        new mutable.LinkedHashSet[String],
+        new mutable.LinkedHashSet[String],
+        new mutable.LinkedHashSet[String]
+      )
+      note.inits += label
+      note.finals += label
+      note
+    }
+  }
 }
+
+case class SprPhraseSymbolNote(
+  inits : Set[String],
+  finals : Set[String],
+  leftContext : Set[String],
+  rightContext : Set[String]
+)
 
 class SprPhrasePatternMatcher
 {
@@ -129,6 +164,52 @@ class SprPhrasePatternMatcher
       throw new IllegalArgumentException(folded)
     }
     folded
+  }
+
+  def analyze(tops : Set[String]) : Map[String, SprPhraseSymbolNote] =
+  {
+    val map = new mutable.LinkedHashMap[String, SymbolNote]
+    root.analyzeRecurse(
+      root, new mutable.LinkedHashSet[(PatternVertex, PatternVertex)],
+      map, VOID, VOID, false)
+    tops.foreach(top => {
+      val note = map.getOrElseUpdate(top, SymbolNote(top))
+      note.leftContext += VOID
+      note.rightContext += VOID
+    })
+    var changed = true
+    while(changed) {
+      val before = map.values.map(_.weight).sum
+      map.foreach {
+        case (label, note) => {
+          val newInits = note.inits.flatMap(i =>
+            map.get(i).map(_.inits).getOrElse(Set.empty))
+          val newFinals = note.finals.flatMap(i =>
+            map.get(i).map(_.finals).getOrElse(Set.empty))
+          val newLeftContext = note.leftContext.flatMap(i =>
+            map.get(i).map(_.finals).getOrElse(Set.empty))
+          val newRightContext = note.rightContext.flatMap(i =>
+            map.get(i).map(_.inits).getOrElse(Set.empty))
+          note.inits ++= newInits
+          note.finals ++= newFinals
+          note.leftContext ++= newLeftContext
+          note.rightContext ++= newRightContext
+          note.inits.foreach(i => {
+            map.getOrElseUpdate(
+              i, SymbolNote(i)).leftContext ++= note.leftContext
+          })
+          note.finals.foreach(i => {
+            map.getOrElseUpdate(
+              i, SymbolNote(i)).rightContext ++= note.rightContext
+          })
+        }
+      }
+      val after = map.values.map(_.weight).sum
+      changed = (after > before)
+    }
+    map.view.mapValues(n =>
+      SprPhraseSymbolNote(n.inits, n.finals, n.leftContext, n.rightContext)
+    ).toMap
   }
 
   case class CycleLinker(
@@ -372,6 +453,47 @@ class SprPhrasePatternMatcher
           child.dump(pw, level + 1)
         }
       })
+    }
+
+    private[parser] def analyzeRecurse(
+      pred : PatternVertex,
+      visited : mutable.Set[(PatternVertex, PatternVertex)],
+      map : mutable.Map[String, SymbolNote],
+      first : String, last : String, cycle : Boolean) : Unit =
+    {
+      reductions.foreach {
+        case (label, allowCycle) => {
+          if (allowCycle || !cycle) {
+            val note = map.getOrElseUpdate(label, SymbolNote(label))
+            note.finals += last
+            note.inits += first
+          }
+        }
+      }
+      if (!visited.contains(tupleN(pred, this))) {
+        visited += tupleN(pred, this)
+        children.foreach {
+          case (label, child) => {
+            if (last != VOID) {
+              val newNote = map.getOrElseUpdate(label, SymbolNote(label))
+              newNote.leftContext += last
+              val oldNote = map.getOrElseUpdate(last, SymbolNote(last))
+              oldNote.rightContext += label
+            }
+            val newFirst = {
+              if (first == VOID) {
+                label
+              } else {
+                first
+              }
+            }
+            child.analyzeRecurse(this, visited, map, newFirst, label, cycle)
+          }
+        }
+        cycleChildren.foreach(child => {
+          child.analyzeRecurse(this, visited, map, first, last, true)
+        })
+      }
     }
   }
 }

@@ -196,6 +196,9 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   private lazy val phrasePatternMatcher = loadMatcher
 
+  private lazy val phrasePatternAnalysis = phrasePatternMatcher.analyze(
+    Set("S", "SBARQ", "SINV", "SQ"))
+
   private implicit val tongue = this
 
   def newSentencePrinter(
@@ -482,6 +485,9 @@ abstract class SprTongue(wordnet : SprWordnet)
 
   def getPhrasePatternMatcher : SprPhrasePatternMatcher =
     phrasePatternMatcher
+
+  def getPhrasePatternAnalysis : Map[String, SprPhraseSymbolNote] =
+    phrasePatternAnalysis
 
   override def isGenitiveVariableLemma(lemma : String) : Boolean =
   {

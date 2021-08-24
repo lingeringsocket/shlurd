@@ -25,6 +25,7 @@ object SprPhrasePatternMatcherSpec
   val jj = SptJJ(leaf)
   val nn = SptNN(leaf)
   val cc = SptCC(leaf)
+  val vb = SptVB(leaf)
   val comma = SptCOMMA(leaf)
 
   val np = SptNP(jj, nn)
@@ -39,6 +40,7 @@ object SprPhrasePatternMatcherSpec
   val NN = nn.label
   val CC = cc.label
   val COMMA = comma.label
+  val VB = vb.label
 
   val NP = np.label
   val VP = vp.label
@@ -221,6 +223,53 @@ class SprPhrasePatternMatcherSpec extends Specification
         throwA[IllegalArgumentException]
       matcher.addSymbol(sentence, Seq(Seq(unknown))) must
         throwA[IllegalArgumentException]
+    }
+
+    "verify analysis" in new MatcherContext
+    {
+      matcher.addRule(S, Seq(NP, VP))
+      matcher.addRule(NP, Seq(JJ, REPEAT, NN))
+      matcher.addRule(VP, Seq(VB))
+
+      val map = matcher.analyze(Set(S))
+
+      val VOID = SprPhrasePatternMatcher.VOID
+      map(S) must be equalTo SprPhraseSymbolNote(
+        Set(S, NP, JJ),
+        Set(S, VP, VB),
+        Set(VOID),
+        Set(VOID)
+      )
+      map(NP) must be equalTo SprPhraseSymbolNote(
+        Set(NP, JJ),
+        Set(NP, NN),
+        Set(VOID),
+        Set(VP, VB)
+      )
+      map(VP) must be equalTo SprPhraseSymbolNote(
+        Set(VP, VB),
+        Set(VP, VB),
+        Set(NP, NN),
+        Set(VOID)
+      )
+      map(JJ) must be equalTo SprPhraseSymbolNote(
+        Set(JJ),
+        Set(JJ),
+        Set(VOID, JJ),
+        Set(JJ, NN)
+      )
+      map(NN) must be equalTo SprPhraseSymbolNote(
+        Set(NN),
+        Set(NN),
+        Set(JJ),
+        Set(VP, VB)
+      )
+      map(VB) must be equalTo SprPhraseSymbolNote(
+        Set(VB),
+        Set(VB),
+        Set(NP, NN),
+        Set(VOID)
+      )
     }
   }
 }

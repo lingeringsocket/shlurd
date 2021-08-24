@@ -23,6 +23,7 @@ import SprPennTreebankLabels._
 import scala.collection._
 import scala.util._
 import scala.sys.process._
+import scala.jdk.CollectionConverters._
 
 import org.jgrapht._
 import org.jgrapht.graph._
@@ -177,6 +178,8 @@ class SprHeuristicSynthesizer(
   private val tokens = words.map(maybeLowerCase)
 
   private val patternMatcher = tongue.getPhrasePatternMatcher
+
+  private val patternAnalysis = tongue.getPhrasePatternAnalysis
 
   private val maxPatternLength = patternMatcher.getMaxPatternLength
 
@@ -422,12 +425,41 @@ class SprHeuristicSynthesizer(
     var curr = setStream.drop(startLowerBound)
     range(startLowerBound until startUpperBound).foreach(start => {
       if (!skips.contains(start)) {
-        val minLength = startUpperBound - start
         cost += 1
+        val minLength = startUpperBound - start
         val results = patternMatcher.matchPatterns(curr, minLength)
         results.foreach({
           case (length, replacementSet) => {
-            if (replacementSet.isEmpty) {
+            lazy val spanStart = stream(start).span.start
+            lazy val spanEnd = stream(start + length - 1).span.end
+            lazy val span = range(spanStart until spanEnd)
+            def substVoid(set : Set[String], addVoid : Boolean) = {
+              if (addVoid) {
+                assert(set.isEmpty)
+                Set(SprPhrasePatternMatcher.VOID)
+              } else {
+                set.map(SprPhrasePatternMatcher.foldLabel)
+              }
+            }
+            lazy val predecessors = substVoid(
+              spanGraph.incomingEdgesOf(spanStart).asScala.flatMap(edge => {
+                edge.set.map(_.label)
+              }),
+              (spanStart == 0)
+            )
+            lazy val successors = substVoid(
+              spanGraph.outgoingEdgesOf(spanEnd).asScala.flatMap(edge => {
+                edge.set.map(_.label)
+              }),
+              spanEnd == words.size
+            )
+            val filteredSet = replacementSet.filter(tree => {
+              val note = patternAnalysis(
+                SprPhrasePatternMatcher.foldLabel(tree.label))
+              note.leftContext.intersect(predecessors).nonEmpty &&
+              note.rightContext.intersect(successors).nonEmpty
+            })
+            if (filteredSet.isEmpty) {
               if ((start + length) <= iActive) {
                 skips += start
                 if (start == newLowerBound) {
@@ -436,14 +468,11 @@ class SprHeuristicSynthesizer(
               }
             } else {
               assert(length >= minLength)
-              val span = range(
-                stream(start).span.start until
-                  stream(start + length - 1).span.end)
-              val newChoice = SpanChoice(replacementSet, span)
+              val newChoice = SpanChoice(filteredSet, span)
               if (!seen.contains(newChoice)) {
                 seen += newChoice
                 processReplacement(
-                  entry, stream, start, length, newChoice, deltaGraph)
+                  entry, newChoice, deltaGraph)
               }
             }
           }
@@ -456,15 +485,13 @@ class SprHeuristicSynthesizer(
 
   private def processReplacement(
     entry : PartialEntry,
-    stream : LazyList[SpanChoice],
-    start : Int,
-    length : Int,
     choice : SpanChoice,
     deltaGraph : Graph[Int, SpanEdge]
   ) : Unit =
   {
-    val filteredSet = choice.set.filter(
-      tree => acceptReplacement(tree))
+    val filteredSet = choice.set.filter {
+      tree => acceptReplacement(tree)
+    }
     if (filteredSet.nonEmpty) {
       updatePhraseGraph(filteredSet)
       val scoredGroups = filteredSet.groupBy(scoreTree)
@@ -480,7 +507,7 @@ class SprHeuristicSynthesizer(
             val newEntry = PartialEntry(
               SpanChoice(newSet, choice.span), newScore)
             enqueue(newEntry)
-            if ((start == 0) && (length == stream.size)) {
+            if ((choice.span.start == 0) && (choice.span.end == words.size)) {
               newSet.foreach(
                 tree => {
                   if (accept(tree)) {
