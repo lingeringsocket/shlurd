@@ -30,9 +30,9 @@ libraryDependencies ++= Seq(
   "edu.stanford.nlp" % "stanford-corenlp" % "3.9.1" classifier "models-english"
 )
 
-scalacOptions in (Compile, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
+scalacOptions in (Compile, console) := Common.scalacCommonOptions
 
-scalacOptions in (Test, console) := Common.scalacCommonOptions :+ "-Yrepl-sync"
+scalacOptions in (Test, console) := Common.scalacCommonOptions
 
 testOptions in Test += Tests.Setup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.corenlp.CorenlpTestSetup").getDeclaredConstructor().newInstance())

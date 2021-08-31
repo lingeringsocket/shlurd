@@ -29,7 +29,7 @@ object Common
 
   def scalacOptions = scalacCommonOptions :+ "-Ywarn-unused:imports,privates,locals,implicits"
 
-  def consoleOptions = Seq("-Yrepl-sync","-Ywarn-unused:-imports")
+  def consoleOptions = Seq("-Ywarn-unused:-imports")
 
   def maxErrors = 99
 
