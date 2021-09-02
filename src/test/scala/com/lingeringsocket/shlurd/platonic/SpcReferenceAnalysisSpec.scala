@@ -87,7 +87,7 @@ class SpcReferenceAnalysisSpec extends SpcProcessingSpecification
 
         override def executeImperative(
           predicate : SilPredicate,
-          refMap : SpcRefMap
+          resultCollector : SmcResultCollector[SpcEntity]
         ) : Option[String] =
         {
           Some("OK.")

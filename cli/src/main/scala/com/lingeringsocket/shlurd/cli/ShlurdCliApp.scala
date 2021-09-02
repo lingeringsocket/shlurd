@@ -34,7 +34,10 @@ object ShlurdCliApp extends App
   val mind = loadOrCreate(file, terminal)
   val shell = new ShlurdCliShell(mind, terminal)
   shell.run()
-  serializer.saveMind(mind, file)
+  // should have some option to control this
+  if (false) {
+    serializer.saveMind(mind, file)
+  }
 
   private def loadOrCreate(
     file : File,
@@ -112,9 +115,85 @@ class ShlurdCliShell(
 
   private val params = SmcResponseParams(verbosity = RESPONSE_ELLIPSIS)
 
+  private def formVerbUrl(verb : String, form : SpcForm) : String =
+  {
+    val opt = mind.getOntology.getFormSynset(form) match {
+      case Some(synset) => {
+        val urlOpt = verb match {
+          case "define" => {
+            Some(ShlurdCliCloud.getBabelnetDefinitionUrl(synset))
+          }
+          case "sketch" => {
+            ShlurdCliCloud.getBabelnetThumbUrl(synset)
+          }
+          case _ => {
+            ShlurdCliCloud.getBabelnetImageUrl(synset)
+          }
+        }
+        urlOpt match {
+          case Some(url) => {
+            Some(url.toString)
+          }
+          case _ => None
+        }
+      }
+      case _ => None
+    }
+    opt match {
+      case Some(urlString) => urlString
+      case _ => {
+        val noun = SpcWordnetOntology.getNoun(form.name)
+        s"(I can't ${verb} form '${noun}'.)"
+      }
+    }
+  }
+
+  private val executor = new SmcExecutor[SpcEntity] {
+    override def executeImperative(
+      predicate : SilPredicate,
+      resultCollector : SmcResultCollector[SpcEntity]) : Option[String] =
+    {
+      predicate match {
+        case SilActionPredicate(
+          _,
+          SilSimpleWord(_,
+            verb @ ("show" | "display" | "define" | "sketch"),
+            _
+          ),
+          Some(objRef : SilAnnotatedReference), _
+        ) => {
+          resultCollector.refMap.get(objRef) match {
+            case Some(targetEntitySet) if (targetEntitySet.nonEmpty) => {
+              val string = targetEntitySet.map(entity => {
+                formVerbUrl(verb, entity.form)
+              }).mkString("\n")
+              Some(string)
+            }
+            case _ => {
+              val annotator = resultCollector.
+                asInstanceOf[SpcResultCollector].spcAnnotator
+              annotator.getNote(objRef).maybeForm match {
+                case Some(form) => {
+                  Some(formVerbUrl(verb, form))
+                }
+                case _ => {
+                  Some("Nothing to show.")
+                }
+              }
+            }
+          }
+        }
+        case _ => {
+          Some("I don't know how.")
+        }
+      }
+    }
+  }
+
   private val responder = new SpcResponder(
     mind, SpcBeliefParams(ACCEPT_MODIFIED_BELIEFS), params,
-    communicationContext = SmcCommunicationContext(
+    executor,
+    SmcCommunicationContext(
       mind.getTongue,
       Some(entityInterviewer),
       Some(entityShlurd)

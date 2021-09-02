@@ -74,7 +74,7 @@ class SmcExecutor[EntityType<:SmcEntity]
 
   def executeImperative(
     predicate : SilPredicate,
-    refMap : SmcRefMap[EntityType]) : Option[String] =
+    resultCollector : SmcResultCollector[EntityType]) : Option[String] =
   {
     None
   }
@@ -473,8 +473,7 @@ class SmcResponder[
           sentencePrinter.responseBundle.respondToCounterfactual(
             sentencePrinter.print(responseSentence))))
       }
-      case Success(_) => {
-        assert(resultCollector.states.size == 1)
+      case Success(_) if (resultCollector.states.size == 1) => {
         val entities =
           resultCollector.lookup(predicate.subject).
             getOrElse(Set.empty).filterNot(entity => {
@@ -498,6 +497,7 @@ class SmcResponder[
         }
       }
       case Failure(e) => Failure(e)
+      case _ => Failure(new UnsupportedOperationException)
     }
   }
 
@@ -824,7 +824,7 @@ class SmcResponder[
                 }
                 case _ => {
                   executor.executeImperative(
-                    predicate, resultCollector.refMap) match
+                    predicate, resultCollector) match
                   {
                     case Some(imperativeResult) => {
                       wrapResponseText(imperativeResult)

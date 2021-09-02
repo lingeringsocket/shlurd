@@ -31,7 +31,7 @@ class SpcWordnetOntologyMind(
 
   override def getTongue = tongue
 
-  private def getOntology = new SpcWordnetOntology(wordnet, cosmos)
+  def getOntology = new SpcWordnetOntology(wordnet, cosmos)
 
   override def spawn(newCosmos : SpcCosmos) =
   {

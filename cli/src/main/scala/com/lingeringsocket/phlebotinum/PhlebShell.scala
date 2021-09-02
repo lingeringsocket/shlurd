@@ -674,7 +674,7 @@ class PhlebShell(
 
     override def executeImperative(
       predicate : SilPredicate,
-      refMap : SpcRefMap)
+      resultCollector : SmcResultCollector[SpcEntity])
         : Option[String] =
     {
       val annotator = SpcAnnotator()
@@ -689,6 +689,7 @@ class PhlebShell(
       }
       val sentence = SilPredicateSentence(newPredicate)
       val refSet = SilUtils.collectReferences(sentence).toSet
+      val refMap = resultCollector.refMap
       val entities = refSet.flatMap(ref =>
         refMap.get(ref).getOrElse(Set.empty))
       validateFiat(annotator, newPredicate, refMap).orElse(

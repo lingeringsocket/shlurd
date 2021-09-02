@@ -190,6 +190,8 @@ class SpcResultCollector private(
   {
     SpcResultCollector(annotator, refMap)
   }
+
+  def spcAnnotator = annotator
 }
 
 object SpcResultCollector

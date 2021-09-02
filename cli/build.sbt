@@ -25,6 +25,10 @@ libraryDependencies ++= Seq(
   "com.twitter" %% "chill" % "0.9.5"
 )
 
+libraryDependencies ++= Seq(
+  "net.sf.extjwnl" % "extjwnl-data-wn30" % "1.2" % "runtime"
+)
+
 testOptions in Test += Tests.Setup(
   (loader : java.lang.ClassLoader) => loader.loadClass("com.lingeringsocket.shlurd.ShlurdTestSetup").getDeclaredConstructor().newInstance())
 

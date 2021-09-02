@@ -259,4 +259,21 @@ class SpcWordnetOntology(wordnet : SprWordnet, cosmos : SpcCosmos)
     val encoded = cosmos.encodeName(word.getLemma)
     s"wnf-${encoded}-${word.getSenseNumber}"
   }
+
+  def getFormSynset(form : SpcForm) : Option[Synset] =
+  {
+    if (form.name.startsWith("wnf-")) {
+      val noun = getNoun(form)
+      val number = form.name.split('-').last
+      val index = number.toInt - 1
+      val senses = wordnet.getNounSenses(noun)
+      if (index >= senses.size) {
+        None
+      } else {
+        Some(senses(index))
+      }
+    } else {
+      None
+    }
+  }
 }
