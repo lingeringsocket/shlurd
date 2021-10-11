@@ -26,11 +26,11 @@ import scala.util._
 
 import java.io._
 
-object ShlurdCliApp extends App
+abstract class ShlurdCliBaseApp extends App
 {
   val serializer = new ShlurdCliSerializer
   val file = new File("run/shlurd-mind.zip")
-  val terminal = new ShlurdCliTerminal
+  val terminal = newTerminal
   val mind = loadOrCreate(file, terminal)
   val shell = new ShlurdCliShell(mind, terminal)
   shell.run()
@@ -38,6 +38,8 @@ object ShlurdCliApp extends App
   if (false) {
     serializer.saveMind(mind, file)
   }
+
+  def newTerminal : ShlurdCliTerminal
 
   private def loadOrCreate(
     file : File,
@@ -55,8 +57,34 @@ object ShlurdCliApp extends App
   }
 }
 
+object ShlurdCliApp extends ShlurdCliBaseApp
+{
+  override def newTerminal = new ShlurdCliTerminal
+}
+
 class ShlurdCliTerminal
 {
+  protected def loadBeliefs(bootMind : SpcMind) : Unit =
+  {
+    Using.resource(ResourceUtils.getResourceSource("/console/beliefs.txt")) {
+      source => bootMind.loadBeliefs(source)
+    }
+  }
+
+  def initialize(bootMind : SpcMind) : Unit =
+  {
+    loadBeliefs(bootMind)
+    emitControl("Hello, human!")
+  }
+
+  def beforeCommand(mind : ShlurdCliMind) : Unit =
+  {
+  }
+
+  def afterCommand(mind : ShlurdCliMind) : Unit =
+  {
+  }
+
   def emitPrompt() : Unit =
   {
     print("> ")
@@ -90,10 +118,7 @@ object ShlurdCliShell
     val preferredSynonyms = new mutable.LinkedHashMap[SpcIdeal, String]
     val bootMind = new SpcWordnetOntologyMind(
       SnlUtils.defaultTongue, cosmos, preferredSynonyms)
-    Using.resource(ResourceUtils.getResourceSource("/console/beliefs.txt")) {
-      source => bootMind.loadBeliefs(source)
-    }
-    terminal.emitControl("Hello, human!")
+    terminal.initialize(bootMind)
     new ShlurdCliMind(cosmos, preferredSynonyms)
   }
 }
@@ -206,6 +231,7 @@ class ShlurdCliShell(
     var exit = false
     terminal.emitControl("")
     while (!exit) {
+      terminal.beforeCommand(mind)
       terminal.emitPrompt()
       terminal.readCommand match {
         case Some(input) => {
@@ -221,6 +247,7 @@ class ShlurdCliShell(
           exit = true
         }
       }
+      terminal.afterCommand(mind)
     }
     terminal.emitControl("")
     terminal.emitControl("Shutting down...")

@@ -1,0 +1,58 @@
+
+An arena-cell is a kind of location.
+
+An arena-cell's northern-neighbor must be an arena-cell.
+An arena-cell's southern-neighbor must be an arena-cell.
+An arena-cell's western-neighbor must be an arena-cell.
+An arena-cell's eastern-neighbor must be an arena-cell.
+
+When  an arena-cell is above another arena-cell,
+ consequently the former is the latter's northern-neighbor;
+ also the latter is the former's southern-neighbor.
+
+When an arena-cell is before another arena-cell,
+ consequently the former is the latter's western-neighbor;
+ also the latter is the former's eastern-neighbor.
+
+An animal's target-cell must be an arena-cell.
+An animal may have a target-cell.
+
+An arena-direction is a kind of object.
+A north, a south, an east, or a west is a kind of arena-direction.
+An arena-direction's opposite-direction must be an arena-direction.
+An arena-direction must have an opposite-direction.
+
+There is a north and a south.
+The north is the south's opposite-direction.
+
+There is an east and a west.
+The east is the west's opposite-direction.
+
+When an animal goes an arena-direction,
+ the animal moves to the arena-direction.
+
+When an animal goes to an arena-direction,
+ the animal moves to the arena-direction.
+
+When an animal moves to an arena-direction,
+ the animal targets the arena-direction;
+ also the animal relocates.
+
+When an animal targets the north,
+ subsequently the animal's target-cell is
+  the animal's spc-container's northern-neighbor.
+
+When an animal targets the south,
+ subsequently the animal's target-cell is
+  the animal's spc-container's southern-neighbor.
+
+When an animal targets the west,
+ subsequently the animal's target-cell is
+  the animal's spc-container's western-neighbor.
+
+When an animal targets the east,
+ subsequently the animal's target-cell is
+  the animal's spc-container's eastern-neighbor.
+
+After an animal relocates,
+ the animal is in the animal's target-cell.

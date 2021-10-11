@@ -607,7 +607,7 @@ class SpcCosmos(
     }
   }
 
-  protected[platonic] def getEntityBySynonym(name : String)
+  def getEntityBySynonym(name : String)
       : Option[SpcEntity] =
   {
     val synonym = synthesizeEntitySynonym(name)

@@ -1080,7 +1080,13 @@ class SpcResponder(
               }
             }
           } else {
-            newConsequents.to(LazyList).flatMap(newSentence => {
+            newConsequents.to(LazyList).flatMap(consequent => {
+              // FIXME do the right thing on a per-consequence
+              // basis
+              val newTam = SilTam.indicative.withPolarity(
+                conditionalSentence.tamConsequent.polarity)
+              val newSentence = consequent.withNewTamFormality(
+                newTam, consequent.formality)
               spawn(imagine(forkedCosmos)).resolveReferences(
                 newSentence, resultCollector, false, true)
               processBeliefOrAction(
